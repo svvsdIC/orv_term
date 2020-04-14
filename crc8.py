@@ -24,7 +24,15 @@ CRC_TABLE = bytes( (
 # ensure buf is array of bytes
 
 def crc8(buf, crc=0x00):
+    '''
+    Compute Dallas/Maxim CRC8 checksum on buffer
+    TODO: finish docstring w/ example of usage
+    '''
     for b in buf:
+        # ensure b is in valid range
+        if b < 0 or b > 256:
+            raise ValueError('Bytes expect to have values in range(256)')
+        # compute crc
         tbl_idx = crc ^ b
         crc = (CRC_TABLE[tbl_idx] ^ (crc >> 8)) & 0xff
 
