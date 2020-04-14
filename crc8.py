@@ -23,9 +23,7 @@ CRC_TABLE = bytes( (
 #
 # ensure buf is array of bytes
 
-def crc8(buf):
-    crc = 0x00
-
+def crc8(buf, crc=0x00):
     for b in buf:
         tbl_idx = crc ^ b
         crc = (CRC_TABLE[tbl_idx] ^ (crc >> 8)) & 0xff
