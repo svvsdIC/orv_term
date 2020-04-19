@@ -17,17 +17,26 @@ CRC_TABLE = bytes( (
     0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
 ) )
 
-# TODO: turn into a class, with init, continuation, and finalize
-# should have static method for computing CRC
-# export single method at module level
-#
-# ensure buf is array of bytes
 
 def crc8(buf, crc=0x00):
-    '''
+    """
     Compute Dallas/Maxim CRC8 checksum on buffer
-    TODO: finish docstring w/ example of usage
-    '''
+
+    This function can be called with a complete buffer or incrementally.  When called incrementally
+    one should use the last returned CRC to continue the CRC calculation.
+
+    Values in buffer are expected to be in range(256)
+
+    This pseudo-code show an example of usage:
+
+        crc = 0x00            # initial value
+	while (in_buf = read_data())
+            crc = crc8(in_buf, crc)
+        # crc has computed value after all buffers have been read
+
+    :param buf: Buffer to compute CRC8 on
+    :param crc: Initial CRC value to start with
+    """
     for b in buf:
         # ensure b is in valid range
         if b < 0 or b > 256:
