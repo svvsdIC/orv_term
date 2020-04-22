@@ -4,8 +4,13 @@ import sys
 import queue
 import serial
 import tkinter as tk
+import tkinter.ttk as ttk
+from enum import Enum
 from threading import Thread
 from types import SimpleNamespace
+
+class Messages(Enum):
+    WRITEMSG = 1
 
 # controller
 def workcycle(guiref, model, queue):
@@ -20,7 +25,7 @@ def workcycle(guiref, model, queue):
     while True:
         msg = queue.get()
         '''Manage the message extracted from the queue'''
-
+        print(msg)
         '''Take care of other tasks, like refreshing the UI with newly received content'''
 
 # view
@@ -34,9 +39,8 @@ def gui(root,q):
 
     '''Build a Tkinter GUI'''
     root.title('orvt')
-    tk.Label(root, text='Hello World').pack()
+    ttk.Label(root, text='Hello World').pack()
     '''Return a collection of significant widget references'''
-    pass
 
     return None
 
