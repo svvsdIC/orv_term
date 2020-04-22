@@ -44,7 +44,21 @@ def gui(root,q):
 
     return None
 
-# TODO: add arguments to pass serial port and baud rate from command line:w
+
+class Orvt(tk.Tk):
+    """
+    OpenROV serial terminal tester program
+    """
+    def __init__(self):
+        super().__init__()
+
+        self.title('orvt')
+        ttk.Label(self, text='Hello World').pack()
+
+
+
+
+
 def main(serial_port, baudrate):
     #open the serial port
     port = serial.serial_for_url(serial_port, baudrate)
@@ -53,11 +67,11 @@ def main(serial_port, baudrate):
     q = queue.Queue()
 
     # Create GUI elements
-    root = tk.Tk()
     guiref = gui(root, q)
 
     # Initialize model application will be working on
     model = SimpleNamespace(port=port)
+    orvt = Orvt()
 
     t = Thread(target=workcycle, args=(guiref, model, q,))
     #t.daemon = True  # daemonize it, so it will die when the program stops
@@ -65,7 +79,7 @@ def main(serial_port, baudrate):
 
     # Start the Application main loop
     #root.protocol("WM_DELETE_WINDOW", callback)
-    root.mainloop()
+    orvt.mainloop()
 
     print('mainloop exited')
 
