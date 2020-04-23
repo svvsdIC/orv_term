@@ -25,7 +25,13 @@ class Orvt(tk.Tk):
         self.comms_log.config(state=tk.DISABLED)
 
         self.cmd_entry = ttk.Entry(self)
+        self.cmd_entry.bind('<Key-Return>', self.send_cmd)
+        self.cmd_entry.bind('<Key-KP_Enter>', self.send_cmd)
         self.cmd_entry.pack()
+
+    def send_cmd(self, event):
+        print(f'contents: {event}')
+        print(self.cmd_entry.get())
 
 
 def main(serial_port, baudrate):
