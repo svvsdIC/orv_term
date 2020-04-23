@@ -30,8 +30,21 @@ class Orvt(tk.Tk):
         self.cmd_entry.pack()
 
     def send_cmd(self, event):
-        print(f'contents: {event}')
-        print(self.cmd_entry.get())
+        print(f'contents: {event!r}')
+        cmd_str = self.cmd_entry.get()
+        print(f'{cmd_str}')
+
+        # append to the log
+        self.comms_log.config(state=tk.NORMAL)
+        self.comms_log.insert(tk.END, cmd_str)
+        self.comms_log.insert(tk.END, '\n')
+        self.comms_log.config(state=tk.DISABLED)
+
+        # clear the command entry widget
+        self.cmd_entry.delete(0, tk.END)
+
+
+
 
 
 def main(serial_port, baudrate):
