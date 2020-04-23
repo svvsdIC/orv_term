@@ -6,6 +6,13 @@ import serial
 import tkinter as tk
 import tkinter.ttk as ttk
 
+# TODO:
+#   * up arrow to get previous command messages
+#   * span width for commands
+#   * implement serial communications manager
+#   * Display serial port communication status (Green/red, for connected or not)
+
+
 class Orvt(tk.Tk):
     """
     OpenROV serial terminal tester program
