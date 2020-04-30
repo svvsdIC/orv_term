@@ -4,19 +4,63 @@ import threading
 from contextlib import contextmanager
 from contextlib import closing
 
+class RxLoop(threading.Thread):
+    def __init__(self, serial_port):
+        # Initialize thread structures
+        super().__init__()
+        self.name = 'RX Loop'
+
+        # Keep a reference to the serial port
+        self._port = serial_port
+
+        # Create thread ending notification event
+        self._rx_end = threading.Event()
+
+        # Create queue to pass to application data read from serial port
+        self.rx_q = queue.Queue()
+
+
+    def run(self):
+        import itertools
+        import time
+        c = itertools.count()
+        while not self._rx_end.is_set():  # check event state
+            print(f'{self.name} {next(c)}')
+            time.sleep(0.1)
+
+class TxLoop(threading.Thread):
+    def __init__(self, serial_port):
+        # Initialize thread structures
+        super().__init__()
+        self.name = 'TX Loop'
+
+        # Keep a reference to the serial port
+        self._port = serial_port
+
+        # Create thread ending notification event
+        self._tx_end = threading.Event()
+
+        # Create queue to pass to application data read from serial port
+        self.tx_q = queue.Queue()
+
+
+    def run(self):
+        import itertools
+        import time
+        c = itertools.count()
+        while not self._tx_end.is_set():  # check event state
+            print(f'{self.name} {next(c)}')
+            time.sleep(0.1)
+
+
+
 
 def serial_port_list():
     ser_list = serial.tools.list_ports.comports()
     # TODO sort and add 'loop://'
     return ser_list
 
-def rx_loop(serial_port, rx_q):
-    import itertools
-    import time
-    c = itertools.count()
-    while True: # check event state
-        print(f'rx {next(c)}')
-        time.sleep(0.1)
+
 
 def tx_loop(serial_port, tx_q):
     import itertools
@@ -30,32 +74,17 @@ def tx_loop(serial_port, tx_q):
 def open_port(serial_port_url, baudrate):
     # open the serial port
     with closing(serial.serial_for_url(serial_port_url, baudrate)) as serial_port:
-        # create read/write queues
-        rx_q = queue.Queue()
-        tx_q = queue.Queue()
+        # Create and launch RX and TX worker threads
+        rx_thread = RxLoop(serial_port)
+        tx_thread = TxLoop(serial_port)
 
-        # launch RX and TX worker threads
-        rx_end = threading.Event()
-        rx_loop.rx_end = rx_end
-        rx_thread = threading.Thread(target=rx_loop, args(serial_port, rx_q))
+        rx_thread.start()
+        tx_thread.start()
 
-        tx_end = threading.Event()
-        tx_loop.tx_end = tx_end
-        tx_thread = threading.Thread(target=tx_loop, args(serial_port, tx_q))
+        print()
 
-def stop_rxtx_loops():
-    pass
-    # sset stop events
-
-
-
-
-
-
-        # Launch rx/tx threads
-
-        #yield queues for application use
-        yield rx_q, tx_q
+        # yield queues for application use
+        yield rx_thread.rx_q, tx_thread.tx_q
 
         # block until queues have been serviced,
         # is this necessary if threads have consumed all data?
@@ -75,3 +104,9 @@ def stop_rxtx_loops():
 #   * add logging
 
 
+if __name__ == '__main__':
+    with open_port('loop://', 115200) as (rx,tx):
+        print (rx)
+        print (tx)
+        #time.sleep(10)
+        #stop_rxtx_loops()
