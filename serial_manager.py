@@ -19,7 +19,6 @@ class RxLoop(threading.Thread):
         # Create queue to pass to application data read from serial port
         self.rx_q = queue.Queue()
 
-
     def run(self):
         import itertools
         import time
@@ -27,6 +26,7 @@ class RxLoop(threading.Thread):
         while not self._rx_end.is_set():  # check event state
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
+
 
 class TxLoop(threading.Thread):
     def __init__(self, serial_port):
@@ -43,7 +43,6 @@ class TxLoop(threading.Thread):
         # Create queue to pass to application data read from serial port
         self.tx_q = queue.Queue()
 
-
     def run(self):
         import itertools
         import time
@@ -53,13 +52,10 @@ class TxLoop(threading.Thread):
             time.sleep(0.1)
 
 
-
-
 def serial_port_list():
     ser_list = serial.tools.list_ports.comports()
     # TODO sort and add 'loop://'
     return ser_list
-
 
 
 def tx_loop(serial_port, tx_q):
@@ -69,6 +65,7 @@ def tx_loop(serial_port, tx_q):
     while True:
         print(f'tx {next(c)}')
         time.sleep(0.1)
+
 
 @contextmanager
 def open_port(serial_port_url, baudrate):
@@ -105,8 +102,8 @@ def open_port(serial_port_url, baudrate):
 
 
 if __name__ == '__main__':
-    with open_port('loop://', 115200) as (rx,tx):
-        print (rx)
-        print (tx)
-        #time.sleep(10)
-        #stop_rxtx_loops()
+    with open_port('loop://', 115200) as (rx, tx):
+        print(rx)
+        print(tx)
+        # time.sleep(10)
+        # stop_rxtx_loops()
