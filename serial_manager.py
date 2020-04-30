@@ -1,6 +1,7 @@
 import serial
 import queue
 from contextlib import contextmanager
+from contextlib import closing
 
 
 def serial_port_list():
@@ -11,24 +12,33 @@ def serial_port_list():
 @contextmanager
 def open_port(serial_port_url, baudrate):
     # open the serial port
-    port = serial.serial_for_url(serial_port_url, baudrate)
+    with closing(serial.serial_for_url(serial_port_url, baudrate)) as serial_port:
+        # create read/write queues
+        rx_q = queue.Queue()
+        tx_q = queue.Queue()
 
-    #todo: check for exeption when not able to open
+
+    raise ValueError()
+
+    #todo: check for exception when not able to open
+
+    # raise exception if not valid device, how does open work when file not found?
 
 
-    #create read/write queues
-    rx_q = queue.Queue()
-    tx_q = queue.Queue()
 
     # Launch rx/tx threads
 
     #yield queues for application use
     yield rx_q, tx_q
 
-
+    # block until queues have been serviced,
+    # is this necessary if threads have consumed all data?
     tx_q.join()
     rx_q.join()
+    #is this okay if GUI has been terminated and therefore cannot consume?  We could consume to nothing instead
 
+    # terminate threads
+    # join rx/tx threads
     pass
 
 
