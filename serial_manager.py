@@ -101,9 +101,3 @@ def open_port(serial_port_url, baudrate):
 #   * add logging
 
 
-if __name__ == '__main__':
-    with open_port('loop://', 115200) as (rx, tx):
-        print(rx)
-        print(tx)
-        # time.sleep(10)
-        # stop_rxtx_loops()
