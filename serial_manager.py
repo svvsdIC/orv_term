@@ -4,6 +4,17 @@ import threading
 from contextlib import contextmanager
 from contextlib import closing
 
+
+# TODO: Things to check
+#   * raise exception if not valid device, how does open work when file not found?
+#   * how system behaves when exexptions are raised from my code
+#   * Is there any way for threads to not terminate?
+#   ** mark task done on queue receive data
+#   * add logging
+#   * __all__ or __slot__
+#   * what thread are left running if a thread raises an exception
+#   * add thread exception handler
+
 class RxLoop(threading.Thread):
     def __init__(self, serial_port):
         # Initialize thread structures
@@ -70,6 +81,7 @@ def tx_loop(serial_port, tx_q):
 @contextmanager
 def open_port(serial_port_url, baudrate):
     # open the serial port
+    # TODO: ensure that closing decorator actually closes serial port
     with closing(serial.serial_for_url(serial_port_url, baudrate)) as serial_port:
         # Create and launch RX and TX worker threads
         rx_thread = RxLoop(serial_port)
@@ -87,17 +99,12 @@ def open_port(serial_port_url, baudrate):
         # is this necessary if threads have consumed all data?
         tx_q.join()
         rx_q.join()
-        #is this okay if GUI has been terminated and therefore cannot consume?  We could consume to nothing instead
+        # is this okay if GUI has been terminated and therefore cannot consume?  We could consume to nothing instead
 
         # terminate threads
         # join rx/tx threads
         pass
 
-# TODO: Things to check
-#   * raise exception if not valid device, how does open work when file not found?
-#   * how system behaves when exexptions are raised from my code
-#   * Is there any way for threads to not terminate?
-#   ** mark task done on queue receive data
-#   * add logging
+
 
 
