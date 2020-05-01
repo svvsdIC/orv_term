@@ -28,7 +28,7 @@ class RxLoop(threading.Thread):
         self._rx_end = threading.Event()
 
         # Create queue to pass to application data read from serial port
-        self.rx_q = queue.Queue()
+        self.rx_q = queue.SimpleQueue()
 
     def run(self):
         import itertools
@@ -52,7 +52,7 @@ class TxLoop(threading.Thread):
         self._tx_end = threading.Event()
 
         # Create queue to pass to application data read from serial port
-        self.tx_q = queue.Queue()
+        self.tx_q = queue.SimpleQueue()
 
     def run(self):
         import itertools
@@ -87,7 +87,7 @@ def open_port(serial_port_url, baudrate):
         yield rx_thread.rx_q, tx_thread.tx_q
 
         # block until queues have been serviced,
-        # is this necessary if threads have consumed all data?
+
         tx_q.join()
         rx_q.join()
         # is this okay if GUI has been terminated and therefore cannot consume?  We could consume to nothing instead
