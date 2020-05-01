@@ -69,15 +69,6 @@ def serial_port_list():
     return ser_list
 
 
-def tx_loop(serial_port, tx_q):
-    import itertools
-    import time
-    c = itertools.count()
-    while True:
-        print(f'tx {next(c)}')
-        time.sleep(0.1)
-
-
 @contextmanager
 def open_port(serial_port_url, baudrate):
     # open the serial port
