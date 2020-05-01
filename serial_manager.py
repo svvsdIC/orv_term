@@ -106,5 +106,8 @@ def open_port(serial_port_url, baudrate):
         pass
 
 
+def stop_rxtx_loops():
+    pass
+    # set stop events
 
 
