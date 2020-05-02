@@ -38,6 +38,9 @@ class RxLoop(threading.Thread):
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
 
+    def stop(self):
+        self._rx_end.set()
+
 
 class TxLoop(threading.Thread):
     def __init__(self, serial_port):
@@ -61,6 +64,9 @@ class TxLoop(threading.Thread):
         while not self._tx_end.is_set():  # check event state
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
+
+    def stop(self):
+        self._tx_end.set()
 
 
 def serial_port_list():
@@ -86,19 +92,15 @@ def open_port(serial_port_url, baudrate):
         # yield queues for application use
         yield rx_thread.rx_q, tx_thread.tx_q
 
-        # block until queues have been serviced,
-
-        tx_q.join()
-        rx_q.join()
-        # is this okay if GUI has been terminated and therefore cannot consume?  We could consume to nothing instead
+        # stop the threads
+        rx_thread.stop()
+        tx_thread.stop()
 
         # terminate threads
         # join rx/tx threads
         pass
 
-
-def stop_rxtx_loops():
-    pass
-    # set stop events
-
+def close_port():
+    print('stopping threads')
+    print(threading.enumerate())
 
