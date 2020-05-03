@@ -1,6 +1,9 @@
 import serial
+import serial.tools.list_ports
 import queue
 import threading
+from operator import attrgetter
+from collections import namedtuple
 from contextlib import contextmanager
 from contextlib import closing
 
@@ -14,6 +17,36 @@ from contextlib import closing
 #   * __all__ or __slot__
 #   * what thread are left running if a thread raises an exception
 #   * add thread exception handler
+
+class SerialInfo(namedtuple('SerialInfo',
+                            field_names=('dev', 'description', 'vid', 'pid'),
+                            defaults=(None, None, None),
+                            )):
+    __slots__ = ()
+    def __str__(self):
+        info_str_parts = list()
+        info_str_parts.append(self.dev)
+        if self.description is not None:
+            info_str_parts.append(f'({self.description})')
+        if self.vid is not None and self.pid is not None:
+            info_str_parts.append(f'[{self.vid:04x}:{self.pid:04x}]')
+        return ' '.join(info_str_parts)
+
+
+def serial_ports():
+    # Always include the loopback device
+    yield SerialInfo('loop://', description='PySerial loopback')
+
+    # Look for serial ports on the system
+    serial_ports = serial.tools.list_ports.comports()
+    serial_ports.sort(key=attrgetter('device'))
+
+    for s in serial_ports:
+        yield SerialInfo(s.device,
+                         None if s.description == 'n/a' else s.description,
+                         s.vid,
+                         s.pid)
+
 
 class RxLoop(threading.Thread):
     def __init__(self, serial_port):
@@ -67,12 +100,6 @@ class TxLoop(threading.Thread):
 
     def stop(self):
         self._tx_end.set()
-
-
-def serial_port_list():
-    ser_list = serial.tools.list_ports.comports()
-    # TODO sort and add 'loop://'
-    return ser_list
 
 
 @contextmanager
