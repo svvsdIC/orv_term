@@ -5,8 +5,6 @@ import threading
 import logging
 from operator import attrgetter
 from collections import namedtuple
-from contextlib import contextmanager
-from contextlib import closing
 
 
 # TODO: Things to check
@@ -17,6 +15,11 @@ from contextlib import closing
 #   * __all__ or __slot__
 #   * what thread are left running if a thread raises an exception
 #   * add thread exception handler
+
+__all__ = (
+    'serial_ports',
+    'SerialManager',
+)
 
 log = logging.getLogger(__name__)
 
@@ -74,9 +77,6 @@ class RxLoop(threading.Thread):
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
 
-    def stop(self):
-        self._rx_end.set()
-
 
 class TxLoop(threading.Thread):
     def __init__(self, serial_port):
@@ -101,36 +101,41 @@ class TxLoop(threading.Thread):
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
 
-    def stop(self):
-        self._tx_end.set()
+
+class SerialManager:
+    def __init__(self, serial_device, baudrate):
+        # When a user uses the serial_ports() function to search for available
+        # devices on the system, it returns SerialInfo objects.  The code can
+        # use these directly.
+        # When the user provided serial_device does not behave like a SerialInfo
+        # then it is safe to assume they know better and use the serial_device
+        # as it was passed in.
+        serial_url = getattr(serial_device, 'dev', serial_device)
+        self._serial = serial.serial_for_url(serial_url, baudrate)
+        log.info('Opened serial port %s', self._serial)
+
+        self._rx_thread = RxLoop(self._serial)
+        self._tx_thread = TxLoop(self._serial)
 
 
-@contextmanager
-def open_port(serial_port_url, baudrate):
-    # open the serial port
-    # TODO: ensure that closing decorator actually closes serial port
-    with closing(serial.serial_for_url(serial_port_url, baudrate)) as serial_port:
-        # Create and launch RX and TX worker threads
-        rx_thread = RxLoop(serial_port)
-        tx_thread = TxLoop(serial_port)
 
-        rx_thread.start()
-        tx_thread.start()
+    @property
+    def queues(self):
+        return self._rx_thread.q, self._tx_thread.q
 
-        print()
+    def signal_stop(self):
+        self._rx_thread.end_loop.set()
+        self._tx_thread.end_loop.set()
 
-        # yield queues for application use
-        yield rx_thread.rx_q, tx_thread.tx_q
+    def __enter__(self):
+        self._rx_thread.start()
+        self._tx_thread.start()
+        return self
 
-        # stop the threads
-        rx_thread.stop()
-        tx_thread.stop()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Wait for the threads to terminate
+        self._rx_thread.join()
+        self._tx_thread.join()
 
-        # terminate threads
-        # join rx/tx threads
-        pass
-
-def close_port():
-    print('stopping threads')
-    print(threading.enumerate())
-
+        # Clean up open resources
+        self._serial.close()

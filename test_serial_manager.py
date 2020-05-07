@@ -1,18 +1,39 @@
 #import unittest
 import logging
-import serial_manager as sm
+import serial_manager
 
 def test_serial_port_list():
-    for s in sm.serial_ports()
+    for s in serial_manager.serial_ports():
         print(f'{s}')
 
+
+def test_serial_manager_loopback_url():
+    with serial_manager.SerialManager('loop://', 115200) as sm:
+        rx_q, tx_q = sm.queues
+
+        # perform read/write
+        import time
+        time.sleep(5)
+
+        # send signals to stop threads
+        sm.signal_stop()
+
+    # on context exit threads end and join to the main thread
+    # serial port is closed
+
+
+def test_serial_manager_serial_info_loopback():
+    ports = serial_manager.serial_ports()
+
+    # find loopback from list
+    loopback_device = None
+
+
+
 if __name__ == '__main__':
-    with sm.open_port('loop://', 115200) as (rx, tx):
-        print(rx)
-        print(tx)
     logging.basicConfig(level=logging.DEBUG)
 
-        import time
-        time.sleep(10)
+    test_serial_port_list()
 
-        sm.close_port()
+    test_serial_manager_loopback_url()
+    test_serial_manager_serial_info_loopback()
