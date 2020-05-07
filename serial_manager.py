@@ -72,12 +72,13 @@ class RxLoop(threading.Thread):
         self.q = queue.SimpleQueue()
 
     def run(self):
-        import itertools
-        import time
-        c = itertools.count()
         while not self.end_loop.is_set():  # check event state
-            print(f'{self.name} {next(c)}')
-            time.sleep(0.1)
+            # TODO: what if we try to terminate the threads, but are still waiting
+            bytes_in = self.port.readline()
+            log.debug('Read %s', bytes_in)
+            self.q.put(bytes_in)
+
+        log.debug('Terminating %s thread', self.name)
 
 
 class TxLoop(threading.Thread):
@@ -96,12 +97,15 @@ class TxLoop(threading.Thread):
         self.q = queue.SimpleQueue()
 
     def run(self):
-        import itertools
-        import time
-        c = itertools.count()
         while not self.end_loop.is_set():  # check event state
-            print(f'{self.name} {next(c)}')
-            time.sleep(0.1)
+            # TODO: what if we try to terminate the threads, but are still waiting
+            bytes_out = self.q.get(block=True)
+            self.port.write(bytes_out)
+
+            #TODO, catch SerialException
+
+
+        log.debug('Terminating %s thread', self.name)
 
 
 class SerialManager:
