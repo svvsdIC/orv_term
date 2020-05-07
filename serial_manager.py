@@ -47,7 +47,7 @@ def serial_ports():
     ports = serial.tools.list_ports.comports()
     ports.sort(key=attrgetter('device'))
 
-    log.debug('Found %d serial ports on the system', len(ports))
+    log.info('Found %d serial ports on the system', len(ports))
 
     for s in ports:
         yield SerialInfo(s.device,
