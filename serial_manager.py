@@ -2,6 +2,7 @@ import serial
 import serial.tools.list_ports
 import queue
 import threading
+import logging
 from operator import attrgetter
 from collections import namedtuple
 from contextlib import contextmanager
@@ -17,6 +18,8 @@ from contextlib import closing
 #   * __all__ or __slot__
 #   * what thread are left running if a thread raises an exception
 #   * add thread exception handler
+
+log = logging.getLogger(__name__)
 
 class SerialInfo(namedtuple('SerialInfo',
                             field_names=('dev', 'description', 'vid', 'pid'),
@@ -40,6 +43,8 @@ def serial_ports():
     # Look for serial ports on the system
     ports = serial.tools.list_ports.comports()
     ports.sort(key=attrgetter('device'))
+
+    log.debug('Found %d serial ports on the system', len(ports))
 
     for s in ports:
         yield SerialInfo(s.device,
