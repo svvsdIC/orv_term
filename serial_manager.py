@@ -38,10 +38,10 @@ def serial_ports():
     yield SerialInfo('loop://', description='PySerial loopback')
 
     # Look for serial ports on the system
-    serial_ports = serial.tools.list_ports.comports()
-    serial_ports.sort(key=attrgetter('device'))
+    ports = serial.tools.list_ports.comports()
+    ports.sort(key=attrgetter('device'))
 
-    for s in serial_ports:
+    for s in ports:
         yield SerialInfo(s.device,
                          None if s.description == 'n/a' else s.description,
                          s.vid,
