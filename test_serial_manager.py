@@ -34,9 +34,10 @@ def test_serial_manager_serial_info_loopback():
     loopback_device = None
 
 
-
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(format="%(asctime)s: %(message)s",
+                        level=logging.DEBUG,
+                        datefmt="%H:%M:%S")
 
     test_serial_port_list()
 
