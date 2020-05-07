@@ -51,7 +51,6 @@ def serial_ports():
                          s.vid,
                          s.pid)
 
-
 class RxLoop(threading.Thread):
     def __init__(self, serial_port):
         # Initialize thread structures
@@ -59,19 +58,19 @@ class RxLoop(threading.Thread):
         self.name = 'RX Loop'
 
         # Keep a reference to the serial port
-        self._port = serial_port
+        self.port = serial_port
 
         # Create thread ending notification event
-        self._rx_end = threading.Event()
+        self.end_loop = threading.Event()
 
         # Create queue to pass to application data read from serial port
-        self.rx_q = queue.SimpleQueue()
+        self.q = queue.SimpleQueue()
 
     def run(self):
         import itertools
         import time
         c = itertools.count()
-        while not self._rx_end.is_set():  # check event state
+        while not self.end_loop.is_set():  # check event state
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
 
@@ -86,19 +85,19 @@ class TxLoop(threading.Thread):
         self.name = 'TX Loop'
 
         # Keep a reference to the serial port
-        self._port = serial_port
+        self.port = serial_port
 
         # Create thread ending notification event
-        self._tx_end = threading.Event()
+        self.end_loop = threading.Event()
 
         # Create queue to pass to application data read from serial port
-        self.tx_q = queue.SimpleQueue()
+        self.q = queue.SimpleQueue()
 
     def run(self):
         import itertools
         import time
         c = itertools.count()
-        while not self._tx_end.is_set():  # check event state
+        while not self.end_loop.is_set():  # check event state
             print(f'{self.name} {next(c)}')
             time.sleep(0.1)
 
