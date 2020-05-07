@@ -11,9 +11,8 @@ from contextlib import closing
 
 # TODO: Things to check
 #   * raise exception if not valid device, how does open work when file not found?
-#   * how system behaves when exexptions are raised from my code
+#   * how system behaves when exceptions are raised from my code
 #   * Is there any way for threads to not terminate?
-#   ** mark task done on queue receive data
 #   * add logging
 #   * __all__ or __slot__
 #   * what thread are left running if a thread raises an exception
