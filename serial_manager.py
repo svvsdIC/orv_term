@@ -6,7 +6,6 @@ import logging
 from operator import attrgetter
 from collections import namedtuple
 
-
 # TODO: Things to check
 #   * raise exception if not valid device, how does open work when file not found?
 #   * how system behaves when exceptions are raised from my code
@@ -23,11 +22,13 @@ __all__ = (
 
 log = logging.getLogger(__name__)
 
+
 class SerialInfo(namedtuple('SerialInfo',
                             field_names=('dev', 'description', 'vid', 'pid'),
                             defaults=(None, None, None),
                             )):
     __slots__ = ()
+
     def __str__(self):
         info_str_parts = list()
         info_str_parts.append(self.dev)
@@ -53,6 +54,7 @@ def serial_ports():
                          None if s.description == 'n/a' else s.description,
                          s.vid,
                          s.pid)
+
 
 class RxLoop(threading.Thread):
     def __init__(self, serial_port):
@@ -116,7 +118,6 @@ class SerialManager:
 
         self._rx_thread = RxLoop(self._serial)
         self._tx_thread = TxLoop(self._serial)
-
 
 
     @property
