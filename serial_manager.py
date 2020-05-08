@@ -56,11 +56,22 @@ def serial_ports():
                          s.pid)
 
 
-class RxLoop(threading.Thread):
+class SerialDataProcessorThread(threading.Thread):
+    '''
+    An abstract class used to process the data to or from a serial port.
+
+    No matter if we are reading or writing, we need to have:
+        * a serial port
+        * a queue for safely moving the data to another thread
+        * a mechanism to terminate the execution of the thread
+
+    This class manages the common parts.  Child classes are responsible
+    to override the
+    '''
     def __init__(self, serial_port):
         # Initialize thread structures
         super().__init__()
-        self.name = 'RX Loop'
+        self.name = self.__class__.__name__
 
         # Keep a reference to the serial port
         self.port = serial_port
@@ -73,39 +84,30 @@ class RxLoop(threading.Thread):
 
     def run(self):
         while not self.end_loop.is_set():  # check event state
-            # TODO: what if we try to terminate the threads, but are still waiting
-            bytes_in = self.port.readline()
-            log.debug('Read %s', bytes_in)
-            self.q.put(bytes_in)
-
+            self.process()
         log.debug('Terminating %s thread', self.name)
 
-
-class TxLoop(threading.Thread):
-    def __init__(self, serial_port):
-        # Initialize thread structures
-        super().__init__()
-        self.name = 'TX Loop'
-
-        # Keep a reference to the serial port
-        self.port = serial_port
-
-        # Create thread ending notification event
-        self.end_loop = threading.Event()
-
-        # Create queue to pass to application data read from serial port
-        self.q = queue.SimpleQueue()
-
-    def run(self):
-        while not self.end_loop.is_set():  # check event state
-            # TODO: what if we try to terminate the threads, but are still waiting
-            bytes_out = self.q.get(block=True)
-            self.port.write(bytes_out)
-
-            #TODO, catch SerialException
+    def process(self):
+        '''
+        Data processing function must be implemented by subclasses
+        '''
+        raise NotImplementedError
 
 
-        log.debug('Terminating %s thread', self.name)
+class RxLoop(SerialDataProcessorThread):
+    def process(self):
+        # TODO: what if we try to terminate the threads, but are still waiting
+        bytes_in = self.port.readline()
+        log.debug('Read %s', bytes_in)
+        self.q.put(bytes_in)
+
+
+class TxLoop(SerialDataProcessorThread):
+    def process(self):
+        # TODO: what if we try to terminate the threads, but are still waiting
+        bytes_out = self.q.get(block=True)
+        self.port.write(bytes_out)
+
 
 
 class SerialManager:
