@@ -95,11 +95,14 @@ class SerialDataProcessorThread(threading.Thread):
 
 
 class RxLoop(SerialDataProcessorThread):
+    READ_BLOCK_SIZE = 64
     def process(self):
-        # TODO: what if we try to terminate the threads, but are still waiting
-        bytes_in = self.port.readline()
-        log.debug('Read %s', bytes_in)
-        self.q.put(bytes_in)
+        bytes_in = self.port.read_until(size=self.READ_BLOCK_SIZE)
+
+        if len(bytes_in) > 0:
+            self.q.put(bytes_in)
+        log.debug('Read %02d %s', len(bytes_in), bytes_in )
+
 
 
 class TxLoop(SerialDataProcessorThread):
@@ -119,7 +122,7 @@ class SerialManager:
         # then it is safe to assume they know better and use the serial_device
         # as it was passed in.
         serial_url = getattr(serial_device, 'dev', serial_device)
-        self._serial = serial.serial_for_url(serial_url, baudrate)
+        self._serial = serial.serial_for_url(serial_url, baudrate, timeout=None, inter_byte_timeout=0.1)
         log.info('Opened serial port %s', self._serial)
 
         self._rx_thread = RxLoop(self._serial)
@@ -133,6 +136,8 @@ class SerialManager:
     def signal_stop(self):
         self._rx_thread.end_loop.set()
         self._tx_thread.end_loop.set()
+
+        self._serial.cancel_read()
 
     def __enter__(self):
         self._rx_thread.start()
