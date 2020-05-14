@@ -104,13 +104,14 @@ class RxLoop(SerialDataProcessorThread):
         log.debug('Read %02d %s', len(bytes_in), bytes_in )
 
 
-
 class TxLoop(SerialDataProcessorThread):
     def process(self):
-        # TODO: what if we try to terminate the threads, but are still waiting
-        bytes_out = self.q.get(block=True)
-        self.port.write(bytes_out)
-
+        try:
+            bytes_out = self.q.get(block=True, timeout=0.100)
+        except queue.Empty as empty:
+            log.debug('No new bytes to transmit')
+        else:
+            self.port.write(bytes_out)
 
 
 class SerialManager:
@@ -138,6 +139,7 @@ class SerialManager:
         self._tx_thread.end_loop.set()
 
         self._serial.cancel_read()
+        self._serial.cancel_write()
 
     def __enter__(self):
         self._rx_thread.start()
