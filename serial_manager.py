@@ -95,6 +95,7 @@ class SerialDataProcessorThread(threading.Thread):
 
 
 class RxLoop(SerialDataProcessorThread):
+    # TODO: catch Serial Exception (like serial unplugged)
     READ_BLOCK_SIZE = 64
     def process(self):
         bytes_in = self.port.read_until(size=self.READ_BLOCK_SIZE)
@@ -105,6 +106,7 @@ class RxLoop(SerialDataProcessorThread):
 
 
 class TxLoop(SerialDataProcessorThread):
+    # TODO, catch SerialException (like serial unplugged)
     def process(self):
         try:
             bytes_out = self.q.get(block=True, timeout=0.100)
@@ -129,6 +131,7 @@ class SerialManager:
         self._rx_thread = RxLoop(self._serial)
         self._tx_thread = TxLoop(self._serial)
 
+        # TODO: ensure that if not able to open correct exception is raised
 
     @property
     def queues(self):
